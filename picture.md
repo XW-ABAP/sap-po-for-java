@@ -106,7 +106,7 @@ Value Pattern: dangan_sap
 ⚠️ 非常重要的提示 (防坑必看)
 在使用 Ping 功能时，你必须了解 REST 通道 Ping 的局限性：
 
-Ping 只能测“网络”： 当你点击 Ping 时，PO 服务器只会去尝试连接 https://eap-t.ghsmc.com 这个地址，看看域名能不能解析、服务器的 443 端口能不能连上、SSL 证书能不能握手。
+Ping 只能测“网络”： 当你点击 Ping 时，PO 服务器只会去尝试连接 https://{host} 这个地址，看看域名能不能解析、服务器的 443 端口能不能连上、SSL 证书能不能握手。
 
 Ping 不会执行代码和鉴权： Ping 不会去跑我们辛辛苦苦写的那个 Java Function Library，不会去获取 Token，也不会执行 RSA 加密。它就是一个纯粹的底层网络探测。
 
