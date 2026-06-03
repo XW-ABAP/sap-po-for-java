@@ -53,6 +53,8 @@ Value Pattern: dangan_sap
 
 按照这样配置保存并激活后，PO 就会准确地把你通过 Java UDF 生成的 token 和 userid 塞进 HTTP Header 里发给泛微系统了。
 
+<img width="1701" height="1192" alt="image" src="https://github.com/user-attachments/assets/9b28d72d-8757-4a57-9c50-5134df8045e3" />
+
 
 ![alt text](image.png)
 
