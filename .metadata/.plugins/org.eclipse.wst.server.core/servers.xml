@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<servers>
+  <server auto-publish-setting="1" hostname="jhza1hpdd01" id="sapserver_HPD" id-set="true" name="SAP 服务器&lt;HPD&gt;" runtime-id="sapruntime" server-type="org.eclipse.jst.server.generic.sap" server-type-id="org.eclipse.jst.server.generic.sap" start-timeout="900" stop-timeout="900" timestamp="10">
+    <map SYSTEM_NAME="HPD" key="generic_server_instance_properties" number="1"/>
+  </server>
+</servers>

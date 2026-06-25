@@ -1,0 +1,100 @@
+package com.company.mapping;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import com.sap.aii.mapping.api.AbstractTrace;
+import com.sap.aii.mapping.api.AbstractTransformation;
+import com.sap.aii.mapping.api.DynamicConfiguration;
+import com.sap.aii.mapping.api.DynamicConfigurationKey;
+import com.sap.aii.mapping.api.InputParameters;
+import com.sap.aii.mapping.api.StreamTransformationException;
+import com.sap.aii.mapping.api.TransformationInput;
+import com.sap.aii.mapping.api.TransformationOutput;
+
+public class JM_AdvancedParameterMapping extends AbstractTransformation {
+
+    @Override
+    public void transform(TransformationInput arg0, TransformationOutput arg1) throws StreamTransformationException {
+        
+        // 1. 初始化日志追踪器 (Trace)
+        AbstractTrace trace = getTrace();
+        StringBuilder outputLog = new StringBuilder();
+        
+        // ==========================================
+        // 模块 A: 读取动态配置 (例如：文件名)
+        // ==========================================
+        DynamicConfiguration dynConfig = arg0.getDynamicConfiguration();
+        String filename = "";
+        if (dynConfig != null) {
+            DynamicConfigurationKey key = DynamicConfigurationKey.create("http://sap.com/xi/XI/System/File", "FileName");
+            try {
+                filename = dynConfig.get(key);
+                if (filename != null && !filename.isEmpty()) {
+                    trace.addInfo("读取到动态文件名: " + filename);
+                    outputLog.append("Dynamic Filename: ").append(filename).append("\r\n");
+                }
+            } catch (Exception e) {
+                trace.addWarning("无法读取动态配置中的文件名");
+            }
+        }
+
+        // ==========================================
+        // 模块 B: 自动循环读取 Operation Mapping 中的 PARAM 参数
+        // ==========================================
+        InputParameters params = arg0.getInputParameters();
+        outputLog.append("--- Mapping Parameters ---\r\n");
+        
+        int i = 1;
+        while (true) {
+            String paramName = "PARAM" + i;
+            try {
+                // 尝试读取 PARAM1, PARAM2...
+                String paramValue = params.getString(paramName);
+                
+                // 如果读到的值为空，说明参数遍历结束，跳出循环
+                if (paramValue == null) {
+                    break; 
+                }
+                
+                // 记录到变量中，并写入系统 Trace 日志
+                outputLog.append(paramName).append(" = ").append(paramValue).append("\r\n");
+                trace.addInfo("成功读取参数 " + paramName + " : " + paramValue);
+                
+                i++;
+            } catch (Exception e) {
+                // 当 getString 找不到参数抛出异常时，认为遍历结束
+                break;
+            }
+        }
+
+        // ==========================================
+        // 模块 C: 处理 Payload (输入流转输出流)
+        // ==========================================
+        try {
+            InputStream in = arg0.getInputPayload().getInputStream();
+            OutputStream out = arg1.getOutputPayload().getOutputStream();
+            
+            // 读取原始的输入报文
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            StringBuilder sourcePayload = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sourcePayload.append(line).append("\r\n");
+            }
+            
+            // 组装最终的输出内容：把参数信息打印在头部，下面紧接着原始报文
+            String finalOutput = outputLog.toString() + 
+                                 "--- Original Payload ---\r\n" + 
+                                 sourcePayload.toString();
+                                 
+            // 写入输出流
+            out.write(finalOutput.getBytes("UTF-8"));
+            out.flush();
+            
+        } catch (Exception e) {
+            throw new StreamTransformationException("Payload 处理失败: " + e.getMessage());
+        }
+    }
+}

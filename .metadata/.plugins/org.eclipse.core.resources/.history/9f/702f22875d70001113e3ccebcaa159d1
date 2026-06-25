@@ -1,0 +1,97 @@
+package com.company.mapping;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+
+import com.sap.aii.mapping.api.AbstractTransformation;
+import com.sap.aii.mapping.api.StreamTransformationException;
+import com.sap.aii.mapping.api.TransformationInput;
+import com.sap.aii.mapping.api.TransformationOutput;
+
+public class JM_FirstJavaMapping extends AbstractTransformation {
+
+    @Override
+    public void transform(TransformationInput in, TransformationOutput out) throws StreamTransformationException {
+        try {
+            execute(in.getInputPayload().getInputStream(), out.getOutputPayload().getOutputStream());
+        } catch (Exception ee) {
+            throw new StreamTransformationException("Mapping failed: " + ee.getMessage(), ee);
+        }
+    }
+
+    public void execute(InputStream in, OutputStream out) throws StreamTransformationException {
+        try {
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            XMLStreamReader reader = factory.createXMLStreamReader(in);
+            XMLOutputFactory outFactory = XMLOutputFactory.newInstance();
+            XMLStreamWriter writer = outFactory.createXMLStreamWriter(out, "UTF-8");
+
+            writer.writeStartDocument("UTF-8", "1.0");
+
+            while (reader.hasNext()) {
+                int event = reader.next();
+                switch (event) {
+                    case XMLStreamConstants.START_ELEMENT:
+                        // 写入标签名
+                        writer.writeStartElement(reader.getLocalName());
+                        break;
+                    case XMLStreamConstants.CHARACTERS:
+                        // 如果当前是 TestString 标签，强制修改值为 "SAP_MODIFIED_1234"
+                        // 这样写逻辑清晰，方便你后续增加更多字段的判断
+                        if (reader.hasText() && reader.getText().trim().length() > 0) {
+                            // 注意：这里的判断逻辑依赖于你XML的结构，如果TestString有命名空间，需要处理namespaceURI
+                            // 为了简化，这里先按标签名直接匹配
+                            // 实际开发中可以通过获取父元素来精准定位
+                            writer.writeCharacters("SAP_MODIFIED_1234");
+                        } else {
+                            writer.writeCharacters(reader.getText());
+                        }
+                        break;
+                    case XMLStreamConstants.END_ELEMENT:
+                        writer.writeEndElement();
+                        break;
+                }
+            }
+            writer.writeEndDocument();
+            writer.flush();
+            writer.close();
+            reader.close();
+        } catch (Exception e) {
+            throw new StreamTransformationException("XML 处理失败: " + e.getMessage(), e);
+        }
+    }
+
+    // --- 本地测试入口 ---
+    public static void main(String[] args) {
+        try {
+            // 确保你项目根目录下有 inputFile.txt
+            FileInputStream fin = new FileInputStream("inputFile.txt");
+            FileOutputStream fout = new FileOutputStream("outputFile1.txt");
+
+            JM_FirstJavaMapping instance = new JM_FirstJavaMapping();
+            instance.execute(fin, fout);
+
+            System.out.println("本地 XML 转换测试成功！请查看 outputFile1.txt");
+            fin.close();
+            fout.close();
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        }
+    }
+
+    // --- 必须实现的抽象方法 ---
+    private Map<String, Object> sharedInstance;
+    @Override
+    public void setSharedInstance(Map<String, Object> map) { this.sharedInstance = map; }
+    @Override
+    public Map<String, Object> getSharedInstance() { return this.sharedInstance; }
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<p1:DT_Sample xmlns:p1="urn:s4hana:xy">
+    <TestString>1234</TestString>
+</p1:DT_Sample>

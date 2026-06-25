@@ -1,0 +1,1 @@
+<test>这是一段用来测试 Java Mapping 的源数据 Hello SAP!</test>

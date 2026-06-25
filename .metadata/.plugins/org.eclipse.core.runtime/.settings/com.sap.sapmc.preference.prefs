@@ -1,0 +1,5 @@
+DefaultSAPSystem=HPD
+HPD=Host<jhza1hpdd01>,InstanceNumber<1>,Secure<false>;Host<jhza1hpdd01>,InstanceNumber<0>,Secure<false>;
+InstanceHistory=Host<jhza1hpdd01>,InstanceNumber<0>,Secure<false>;
+SAPSystems=HPD;
+eclipse.preferences.version=1
